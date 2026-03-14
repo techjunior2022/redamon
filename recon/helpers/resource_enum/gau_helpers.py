@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Set, Tuple
 from urllib.parse import urlparse, parse_qs
 
 from .classification import classify_parameter, classify_endpoint
+from recon.helpers.shared_paths import create_shared_temp_dir, to_host_path
 
 
 def _is_arm64_host() -> bool:
@@ -24,10 +25,8 @@ def _is_arm64_host() -> bool:
 
 
 def _create_temp_dir(prefix: str = "gau") -> Path:
-    """Create a temp directory under /tmp/redamon for Docker-in-Docker compatibility."""
-    temp_dir = Path(f"/tmp/redamon/.{prefix}_{uuid.uuid4().hex[:8]}")
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    return temp_dir
+    """Create a temp directory under the shared recon output path."""
+    return create_shared_temp_dir(prefix)
 
 
 def _cleanup_temp_dir(temp_dir: Path):
@@ -329,7 +328,7 @@ def verify_gau_urls(
         # Build httpx command
         cmd = [
             "docker", "run", "--rm",
-            "-v", f"{temp_dir}:/data",
+            "-v", f"{to_host_path(temp_dir)}:/data",
             docker_image,
             "-l", "/data/urls.txt",
             "-o", "/data/verified.json",
@@ -418,7 +417,7 @@ def detect_gau_methods(
 
         cmd = [
             "docker", "run", "--rm",
-            "-v", f"{temp_dir}:/data",
+            "-v", f"{to_host_path(temp_dir)}:/data",
             docker_image,
             "-l", "/data/urls.txt",
             "-o", "/data/options_output.json",
@@ -497,7 +496,7 @@ def detect_gau_methods(
 
             get_cmd = [
                 "docker", "run", "--rm",
-                "-v", f"{temp_dir}:/data",
+                "-v", f"{to_host_path(temp_dir)}:/data",
                 docker_image,
                 "-l", "/data/get_urls.txt",
                 "-o", "/data/get_output.json",

@@ -119,7 +119,7 @@ def run_resource_enum(recon_data: dict, output_file: Optional[Path] = None, sett
     GAU_VERIFY_TIMEOUT = settings.get('GAU_VERIFY_TIMEOUT', 5)
     GAU_VERIFY_RATE_LIMIT = settings.get('GAU_VERIFY_RATE_LIMIT', 50)
     GAU_VERIFY_THREADS = settings.get('GAU_VERIFY_THREADS', 50)
-    GAU_VERIFY_ACCEPT_STATUS = settings.get('GAU_VERIFY_ACCEPT_STATUS', ['200', '201', '301', '302', '307', '308', '401', '403'])
+    GAU_VERIFY_ACCEPT_STATUS = settings.get('GAU_VERIFY_ACCEPT_STATUS', [200, 201, 301, 302, 307, 308, 401, 403])
     GAU_DETECT_METHODS = settings.get('GAU_DETECT_METHODS', True)
     GAU_METHOD_DETECT_THREADS = settings.get('GAU_METHOD_DETECT_THREADS', 20)
     GAU_METHOD_DETECT_TIMEOUT = settings.get('GAU_METHOD_DETECT_TIMEOUT', 5)
@@ -419,9 +419,9 @@ def run_resource_enum(recon_data: dict, output_file: Optional[Path] = None, sett
             verified_urls = verify_gau_urls(
                 gau_urls_to_process,
                 GAU_VERIFY_DOCKER_IMAGE,
+                GAU_VERIFY_THREADS,
                 GAU_VERIFY_TIMEOUT,
                 GAU_VERIFY_RATE_LIMIT,
-                GAU_VERIFY_THREADS,
                 GAU_VERIFY_ACCEPT_STATUS,
                 use_proxy
             )

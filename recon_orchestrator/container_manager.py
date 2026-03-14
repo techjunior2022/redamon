@@ -208,8 +208,6 @@ class ContainerManager:
                     f"{recon_path}": {"bind": "/app/recon", "mode": "rw"},
                     # Mount graph_db module
                     f"{Path(recon_path).parent}/graph_db": {"bind": "/app/graph_db", "mode": "ro"},
-                    # Mount /tmp for Docker-in-Docker temp files (avoids spaces in paths)
-                    "/tmp/redamon": {"bind": "/tmp/redamon", "mode": "rw"},
                 },
                 command="python /app/recon/main.py",
             )

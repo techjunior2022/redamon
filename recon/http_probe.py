@@ -34,6 +34,8 @@ import sys
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from recon.helpers.shared_paths import create_shared_temp_dir, to_host_path
+
 # Settings are passed from main.py to avoid multiple database queries
 
 
@@ -532,18 +534,9 @@ def get_host_path(container_path: str) -> str:
     When running inside a container with mounted volumes, sibling containers
     need host paths, not container paths.
 
-    /tmp/redamon is mounted to the same path inside and outside, so no translation needed.
+    Paths under the mounted recon output directory are translated to host paths.
     """
-    # /tmp/redamon paths are the same inside and outside the container
-    if container_path.startswith("/tmp/redamon"):
-        return container_path
-
-    host_output_path = os.environ.get("HOST_RECON_OUTPUT_PATH", "")
-    container_output_path = "/app/recon/output"
-
-    if host_output_path and container_path.startswith(container_output_path):
-        return container_path.replace(container_output_path, host_output_path, 1)
-    return container_path
+    return to_host_path(container_path)
 
 
 def build_httpx_command(targets_file: str, output_file: str, settings: dict, use_proxy: bool = False) -> List[str]:
@@ -1436,10 +1429,8 @@ def run_http_probe(recon_data: dict, output_file: Path = None, settings: dict = 
         print("[!] No URLs to probe")
         return recon_data
 
-    # Create temp directory for scan files
-    # Use /tmp/redamon to avoid spaces in paths (snap Docker issue)
-    scan_temp_dir = Path("/tmp/redamon/.httpx_temp")
-    scan_temp_dir.mkdir(parents=True, exist_ok=True)
+    # Create temp directory for scan files in the shared output mount.
+    scan_temp_dir = create_shared_temp_dir("httpx_temp")
 
     try:
         # Write targets file

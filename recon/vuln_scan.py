@@ -26,6 +26,8 @@ import sys
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from recon.helpers.shared_paths import create_shared_temp_dir
+
 # Settings are passed from main.py to avoid multiple database queries
 
 # Import helpers from organized modules
@@ -267,10 +269,8 @@ def run_vuln_scan(recon_data: dict, output_file: Path = None, settings: dict = N
         print(f"    Max workers: {SECURITY_CHECK_MAX_WORKERS}")
     print("=" * 70 + "\n")
     
-    # Create a temporary directory for nuclei files
-    # Use /tmp/redamon to avoid spaces in paths (snap Docker issue)
-    nuclei_temp_dir = Path("/tmp/redamon/.nuclei_temp")
-    nuclei_temp_dir.mkdir(parents=True, exist_ok=True)
+    # Create a temporary directory for nuclei files in the shared output mount.
+    nuclei_temp_dir = create_shared_temp_dir("nuclei_temp")
     
     # Create targets file
     # For DAST mode with discovered URLs, use those; otherwise use base URLs

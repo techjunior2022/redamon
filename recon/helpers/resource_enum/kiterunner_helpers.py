@@ -17,13 +17,12 @@ from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from .classification import classify_endpoint
+from recon.helpers.shared_paths import create_shared_temp_dir, to_host_path
 
 
 def _create_temp_dir(prefix: str = "kr") -> Path:
-    """Create a temp directory under /tmp/redamon for Docker-in-Docker compatibility."""
-    temp_dir = Path(f"/tmp/redamon/.{prefix}_{uuid.uuid4().hex[:8]}")
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    return temp_dir
+    """Create a temp directory under the shared recon output path."""
+    return create_shared_temp_dir(prefix)
 
 
 def _cleanup_temp_dir(temp_dir: Path):
@@ -612,7 +611,7 @@ def detect_kiterunner_methods(
 
             cmd = [
                 "docker", "run", "--rm",
-                "-v", f"{temp_path}:/data",
+                "-v", f"{to_host_path(temp_path)}:/data",
                 verify_docker_image,
                 "-l", "/data/urls.txt",
                 "-o", "/data/options_output.json",
@@ -687,7 +686,7 @@ def detect_kiterunner_methods(
 
                 cmd = [
                     "docker", "run", "--rm",
-                    "-v", f"{temp_path}:/data",
+                    "-v", f"{to_host_path(temp_path)}:/data",
                     verify_docker_image,
                     "-l", f"/data/urls_{method.lower()}.txt",
                     "-o", f"/data/output_{method.lower()}.json",

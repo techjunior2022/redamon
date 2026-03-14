@@ -27,6 +27,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import IANA service lookup (15,000+ services from official registry)
 from helpers.iana_services import get_service_name_friendly as get_service_name
+from helpers.shared_paths import create_shared_temp_dir, to_host_path
 
 # Settings are passed from main.py to avoid multiple database queries
 
@@ -170,21 +171,9 @@ def get_host_path(container_path: str) -> str:
     The recon container mounts: ./output:/app/recon/output
     So /app/recon/output/* inside the container maps to <host>/recon/output/* on host.
 
-    /tmp/redamon is mounted to the same path inside and outside, so no translation needed.
+    Paths under the mounted recon output directory are translated to host paths.
     """
-    # /tmp/redamon paths are the same inside and outside the container
-    if container_path.startswith("/tmp/redamon"):
-        return container_path
-
-    host_output_path = os.environ.get("HOST_RECON_OUTPUT_PATH", "")
-    container_output_path = "/app/recon/output"
-
-    if host_output_path and container_path.startswith(container_output_path):
-        # Replace container path with host path
-        return container_path.replace(container_output_path, host_output_path, 1)
-
-    # If not in container or path doesn't match, return as-is
-    return container_path
+    return to_host_path(container_path)
 
 
 def build_naabu_command(targets_file: str, output_file: str, settings: dict, use_proxy: bool = False) -> List[str]:
@@ -498,10 +487,8 @@ def run_port_scan(recon_data: dict, output_file: Path = None, settings: dict = N
     print(f"    [*] Found {len(unique_hostnames)} hostnames and {len(unique_ips)} IPs")
     print(f"    [*] Total targets to scan: {len(all_targets)}")
 
-    # Create temp directory for scan files
-    # Use /tmp/redamon to avoid spaces in paths (snap Docker issue)
-    scan_temp_dir = Path("/tmp/redamon/.naabu_temp")
-    scan_temp_dir.mkdir(parents=True, exist_ok=True)
+    # Create temp directory for scan files in the shared output mount.
+    scan_temp_dir = create_shared_temp_dir("naabu_temp")
 
     try:
         # Write targets file

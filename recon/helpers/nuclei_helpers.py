@@ -11,6 +11,7 @@ from typing import List
 
 # Import volume constant from docker helpers
 from .docker_helpers import NUCLEI_TEMPLATES_VOLUME
+from .shared_paths import to_host_path
 
 
 def get_host_path(container_path: str) -> str:
@@ -20,18 +21,9 @@ def get_host_path(container_path: str) -> str:
     When running inside a container with mounted volumes, sibling containers
     need host paths, not container paths.
 
-    /tmp/redamon is mounted to the same path inside and outside, so no translation needed.
+    Paths under the mounted recon output directory are translated to host paths.
     """
-    # /tmp/redamon paths are the same inside and outside the container
-    if container_path.startswith("/tmp/redamon"):
-        return container_path
-
-    host_output_path = os.environ.get("HOST_RECON_OUTPUT_PATH", "")
-    container_output_path = "/app/recon/output"
-
-    if host_output_path and container_path.startswith(container_output_path):
-        return container_path.replace(container_output_path, host_output_path, 1)
-    return container_path
+    return to_host_path(container_path)
 
 
 # =============================================================================
